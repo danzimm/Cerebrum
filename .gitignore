@@ -1,2 +1,6 @@
-*.gz
+*.idx
 .DS_Store
+objects
+load_labels
+load_images
+*.swp

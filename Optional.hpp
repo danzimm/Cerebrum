@@ -2,6 +2,8 @@
 #ifndef Optional_hpp
 #define Optional_hpp
 
+#include <functional>
+
 struct OptionalEmpty {};
 static OptionalEmpty OptionalEmptyValue;
 
@@ -9,10 +11,14 @@ template<typename T>
 struct Optional {
   T *value;
 
-  Optional(const Optional& opt) : Optional() {
-    if (opt.value) {
-      value = &storage.value;
-      storage.value = opt.storage.value;
+  Optional(const Optional& opt) : value(opt.value), storage(opt.value ? Storage(opt.storage.value) : Storage(OptionalEmptyValue)) {
+    if (value) {
+      value = &opt.storage.value;
+    }
+  }
+  Optional(Optional&& opt) : value(opt.value), storage(opt.value ? Storage(opt.storage.value) : Storage(OptionalEmptyValue)) {
+    if (value) {
+      value = &opt.storage.value;
     }
   }
   Optional(const T& val) : storage(val), value(&storage.value) {}
@@ -46,11 +52,17 @@ private:
   union Storage {
     T value;
     char empty;
+    
     Storage(OptionalEmpty) : empty(0x13) {}
+    
     template<typename ...Args>
     Storage(const Args&... args) : value(args...) {}
     template<typename ...Args>
     Storage(Args&&... args) : value(std::forward<Args>(args)...) {}
+
+    Storage(const Storage& other) : value(other.value) {}
+    Storage(Storage&& other) : value(std::forward<T>(other.value)) {}
+    
     ~Storage() {}
   } storage;
 };
