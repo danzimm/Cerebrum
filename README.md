@@ -16,21 +16,21 @@ This is to examine images files. Run `./load_images [some_images_file]` to view 
 
 Roadmap
 ---
-[x] Create IDX file reader
-[x] Create IDX file reader tests
-  [x] Read in labels files
-  [x] Read in images files
-[ ] Create Neuron (a general form of a Sigmoid Neuron where the SN is just a specialization of the Neuron)
-[ ] Create SN tests
-  [ ] Train and
-  [ ] Train or
-  [ ] Train sum with carry
-  [ ] Train digit recognizer
-[ ] Create a convolutional neural network
-[ ] Create CNN tests
-  [ ] Train to recognize an icon
-[ ] Create recurrent neural network
-[ ] Implement [this](http://mi.eng.cam.ac.uk/~thw28/papers/TR698.pdf) to generate wookieleaks
+- [x] Create IDX file reader
+- [x] Create IDX file reader tests
+  - [x] Read in labels files
+  - [x] Read in images files
+- [ ] Create Neuron (a general form of a Sigmoid Neuron where the SN is just a specialization of the Neuron)
+- [ ] Create SN tests
+  - [ ] Train and
+  - [ ] Train or
+  - [ ] Train sum with carry
+  - [ ] Train digit recognizer
+- [ ] Create a convolutional neural network
+- [ ] Create CNN tests
+  - [ ] Train to recognize an icon
+- [ ] Create recurrent neural network
+- [ ] Implement [this](http://mi.eng.cam.ac.uk/~thw28/papers/TR698.pdf) to generate wookieleaks
 
 Contributing
 ---
