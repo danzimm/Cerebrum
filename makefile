@@ -4,7 +4,7 @@
 CXX=clang++
 CC=clang
 CFLAGS=-Wall -Werror -g
-CXXFLAGS=-std=c++14
+CXXFLAGS=-std=c++14 -stdlib=libc++
 OBJDIR=objects
 load_labels_OBJ=$(addprefix $(OBJDIR)/, load_labels.o)
 load_images_OBJ=$(addprefix $(OBJDIR)/, load_images.o)
