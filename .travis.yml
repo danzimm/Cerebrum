@@ -3,4 +3,9 @@ compiler: clang
 dist: trusty
 sudo: false
 
+addons:
+  apt:
+    packages:
+      - libc++-dev
+
 script: make && make test
