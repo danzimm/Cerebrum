@@ -1,15 +1,10 @@
 language: cpp
 compiler: clang
 os: linux
-sudo: required
 
-install:
-  - sudo apt-get update
-  - sudo apt-get install clang-3.5
-  - clang --version
-  - export CC=clang-3.5
-  - export CXX=clang++-3.5
-  - $CC --version
-  - $CXX --version
+addons:
+  apt:
+    package:
+      - clang-3.6
 
-script: make all test
+script: make && make test
