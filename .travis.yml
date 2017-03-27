@@ -2,6 +2,6 @@ language: c++
 
 sudo: false
 
-install: true
+#install: true
 
 script: make all test
