@@ -2,8 +2,6 @@ language: c++
 
 sudo: false
 
-install:
-  - apt-get update -qq
-  - apt-get install -qq clang
+install: true
 
 script: make all test
