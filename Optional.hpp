@@ -1,6 +1,7 @@
-
-#ifndef Optional_hpp
-#define Optional_hpp
+/*
+ * Made by DanZimm on Sun Mar 26 03:48:07 CDT 2017
+ */
+#pragma once
 
 #include <functional>
 
@@ -67,4 +68,3 @@ private:
   } storage;
 };
 
-#endif // Optional_hpp

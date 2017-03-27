@@ -4,3 +4,4 @@ objects
 load_labels
 load_images
 *.swp
+tests

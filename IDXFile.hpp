@@ -1,6 +1,7 @@
-
-#ifndef IDXFile_hpp
-#define IDXFile_hpp
+/*
+ * Made by DanZimm on Sun Mar 26 03:48:56 CDT 2017
+ */
+#pragma once
 
 #include "Optional.hpp"
 
@@ -211,6 +212,4 @@ private:
   DataType *_data;
   std::array<int, Dimensions> _dimensionSizes;
 };
-
-#endif
 
