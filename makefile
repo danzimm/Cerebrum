@@ -1,8 +1,8 @@
 #
 # Made by DanZimm on Mon Mar 27 13:16:29 CDT 2017
 #
-CXX ?= clang++
-CC ?= clang
+CXX=clang++
+CC=clang
 CFLAGS=-Wall -Werror -g
 CXXFLAGS=-std=c++14
 OBJDIR=objects
