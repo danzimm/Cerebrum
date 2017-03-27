@@ -2,6 +2,7 @@ language: c++
 
 sudo: false
 
-install: true
+install:
+  - sudo apt-get install -qq clang
 
 script: make all test
