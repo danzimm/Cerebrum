@@ -13,7 +13,7 @@ void Test::ensureEqual(const double& left, const double& right, std::string mess
   }
 }
 
-int main() {
-  TestSuite::defaultSuite()._run();
+int main(int argc, const char* const argv[]) {
+  return TestSuite::defaultSuite()._run() ? 0 : 1;
 }
 
