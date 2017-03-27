@@ -3,14 +3,13 @@
  */
 #pragma once
 
+#include <chrono>
 #include <iomanip>
 #include <ios>
 #include <iostream>
 #include <string>
 #include <vector>
 
-#include <mach/mach.h>
-#include <mach/mach_time.h>
 #include <unistd.h>
 
 #define DeclareTest(cls, name) \
@@ -59,29 +58,19 @@ struct Test {
   }
 
   bool _run(size_t indents=0) {
-    static mach_timebase_info_data_t timebaseInfo;
-    uint64_t start;
-    uint64_t end;
-    uint64_t elapsed;
-    double secElapsed;
-    
     for (size_t i = 0; i < indents; i++) {
       std::cout << "  ";
     }
     std::cout << "Running " << _name << ": " << std::endl;
-    start = mach_absolute_time();
+    auto start = std::chrono::high_resolution_clock::now();
     try {
       run(indents);
     } catch(std::runtime_error& error) {
     }
-    end = mach_absolute_time();
+    auto end = std::chrono::high_resolution_clock::now();
     bool success = !std::exchange(_failed, false);
-    if (timebaseInfo.denom == 0) {
-      mach_timebase_info(&timebaseInfo);
-    }
-    elapsed = end - start;
-    secElapsed = (double)(elapsed * timebaseInfo.numer) / (double)(1000000000 * timebaseInfo.denom);
-
+    
+    double secElapsed = std::chrono::duration<double>(end - start).count();
     for (size_t i = 0; i < indents + 1; i++) {
       std::cout << "  ";
     }
