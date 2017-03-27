@@ -3,9 +3,4 @@ compiler: clang
 dist: trusty
 sudo: false
 
-addons:
-  apt:
-    package:
-      - clang-3.6
-
 script: make && make test
