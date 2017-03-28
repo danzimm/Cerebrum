@@ -29,11 +29,11 @@ Roadmap
   - [x] Read in labels files
   - [x] Read in images files
 - [ ] Basic matrix library that has basic operations
-  - [x] Muliplication
-  - [x] Transpose
-  - [ ] Addition
-  - [ ] Subtraction
-  - [ ] Negation
+  - [x] Muliplication(matrix/scalar, in place/create new)
+  - [x] Transpose(in place/create new)
+  - [x] Addition(matrix/scalar, in place/create new)
+  - [x] Subtraction(matrix/scalar, in place/create new)
+  - [x] Negation(in place/create new)
   - [ ] [Hadamard Product](https://goo.gl/eoDHmB)
 - [ ] Basic feed forward network
   - [ ] Hidden layers of any size are allowed (all nodes are assumed to connect)

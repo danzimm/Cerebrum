@@ -3,7 +3,6 @@
  */
 #pragma once
 
-#include <cassert>
 #include <cmath>
 #include <initializer_list>
 #include <string>
@@ -11,6 +10,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+
+
 
 struct Matrix {
   Matrix(size_t rows, size_t columns, double initialValue = 0.0) : _rows(rows), _columns(columns) {
@@ -27,7 +28,12 @@ struct Matrix {
 
   Matrix(size_t rows, size_t columns, std::initializer_list<double> list) : _rows(rows), _columns(columns) {
     size_t size = rows * columns;
-    assert(list.size() == size);
+    if (list.size() != size) {
+      std::string what = "Initializer list should be ";
+      what += std::to_string(rows) + "x" + std::to_string(columns) + "=" + std::to_string(size);
+      what += " long, but was " + std::to_string(list.size()) + " long";
+      throw std::invalid_argument(what);
+    }
     size_t bytes = size * sizeof(double);
     _data = reinterpret_cast<double *>(malloc(bytes));
     memcpy(_data, list.begin(), bytes);
@@ -72,8 +78,18 @@ struct Matrix {
     return *this;
   }
 
+  friend Matrix operator*(double scalar, const Matrix& other) {
+    return other * scalar;
+  }
+
   Matrix operator*(Matrix& other) const {
-    assert(_columns == other._rows);
+    if (_columns != other._rows) {
+      std::string what("Cannot multiply matrix with dimensions ");
+      what += std::to_string(_rows) + "x" + std::to_string(_columns);
+      what += " with matrix with dimensions ";
+      what += std::to_string(other._rows) + "x" + std::to_string(other._columns);
+      throw std::invalid_argument(what);
+    }
     size_t columns = other._columns;
     size_t rows = _rows;
     Matrix result(rows, columns);
@@ -91,9 +107,27 @@ struct Matrix {
     return result;
   }
 
-  Matrix& operator*=(Matrix& other) {
-    assert(_columns == other._rows);
-    assert(_columns == other._columns);
+  Matrix operator*(double scalar) const {
+    Matrix result(_rows, _columns);
+    for (size_t i = 0; i < _rows; i++) {
+      const double* row = (*this)[i];
+      double* resultRow = result[i];
+      for (size_t j = 0; j < _columns; j++) {
+        resultRow[j] = row[j] * scalar;
+      }
+    }
+    return result;
+  }
+
+  Matrix& operator*=(const Matrix& other) {
+    if (_columns != other._rows || _columns != other._columns) {
+      std::string what("Cannot multiply matrix with dimensions ");
+      what += std::to_string(_rows) + "x" + std::to_string(_columns);
+      what += " with matrix with dimensions ";
+      what += std::to_string(other._rows) + "x" + std::to_string(other._columns);
+      what += " in place";
+      throw std::invalid_argument(what);
+    }
     double tmp[_columns];
     for (size_t i = 0; i < _rows; i++) {
       double* selfRow = (*this)[i];
@@ -109,6 +143,16 @@ struct Matrix {
     return *this;
   }
 
+  Matrix& operator*=(double scalar) {
+    for (size_t i = 0; i < _rows; i++) {
+      double* row = (*this)[i];
+      for (size_t j = 0; j < _columns; j++) {
+        row[j] *= scalar;
+      }
+    }
+    return *this;
+  }
+
   Matrix transpose() const {
     Matrix result(_columns, _rows);
     for (size_t i = 0; i < _rows; i++) {
@@ -118,6 +162,177 @@ struct Matrix {
       }
     }
     return result;
+  }
+
+  Matrix& transposeInPlace() {
+    if (_rows != _columns) {
+      std::string what("Cannot transpose matrix with dimensions ");
+      what += std::to_string(_rows) + "x" + std::to_string(_columns) + "in place";
+      throw std::invalid_argument(what);
+    }
+    Matrix& self = *this;
+    for (size_t i = 0; i < _rows; i++) {
+      for (size_t j = _columns - 1; j > i; j--) {
+        std::swap(self[i][j], self[j][i]);
+      }
+    }
+    return self;
+  }
+
+  friend Matrix operator+(double scalar, const Matrix& other) {
+    return other + scalar;
+  }
+
+  Matrix operator+(const Matrix& other) const {
+    if (_rows != other._rows || _columns != other._columns) {
+      std::string what("Cannot add matrix with dimensions ");
+      what += std::to_string(_rows) + "x" + std::to_string(_columns);
+      what += " to matrix with dimensions ";
+      what += std::to_string(other._rows) + "x" + std::to_string(other._columns);
+      throw std::invalid_argument(what);
+    }
+    Matrix result(_rows, _columns);
+    for (size_t i = 0; i < _rows; i++) {
+      double* row = result[i];
+      const double* thisRow = (*this)[i];
+      const double* otherRow = other[i];
+      for (size_t j = 0; j < _columns; j++) {
+        row[j] = thisRow[j] + otherRow[j];
+      }
+    }
+    return result;
+  }
+  
+  Matrix operator+(double scalar) const {
+    Matrix result(_rows, _columns);
+    for (size_t i = 0; i < _rows; i++) {
+      double* row = result[i];
+      const double* thisRow = (*this)[i];
+      for (size_t j = 0; j < _columns; j++) {
+        row[j] = thisRow[j] + scalar;
+      }
+    }
+    return result;
+  }
+
+  Matrix& operator+=(const Matrix& other) {
+    if (_rows != other._rows || _columns != other._columns) {
+      std::string what("Cannot add matrix with dimensions ");
+      what += std::to_string(_rows) + "x" + std::to_string(_columns);
+      what += " to matrix with dimensions ";
+      what += std::to_string(other._rows) + "x" + std::to_string(other._columns);
+      what += " in place";
+      throw std::invalid_argument(what);
+    }
+    Matrix& self = *this;
+    for (size_t i = 0; i < _rows; i++) {
+      double* row = self[i];
+      const double* otherRow = other[i];
+      for (size_t j = 0; j < _columns; j++) {
+        row[j] += otherRow[j];
+      }
+    }
+    return self;
+  }
+
+  Matrix& operator+=(double scalar) {
+    Matrix& self = *this;
+    for (size_t i = 0; i < _rows; i++) {
+      double* row = self[i];
+      for (size_t j = 0; j < _columns; j++) {
+        row[j] += scalar;
+      }
+    }
+    return self;
+  }
+
+  friend Matrix operator-(double scalar, const Matrix& other) {
+    return -(other - scalar);
+  }
+
+  Matrix operator-(const Matrix& other) const {
+    if (_rows != other._rows || _columns != other._columns) {
+      std::string what("Cannot subtract matrix with dimensions ");
+      what += std::to_string(_rows) + "x" + std::to_string(_columns);
+      what += " to matrix with dimensions ";
+      what += std::to_string(other._rows) + "x" + std::to_string(other._columns);
+      throw std::invalid_argument(what);
+    }
+    Matrix result(_rows, _columns);
+    for (size_t i = 0; i < _rows; i++) {
+      double* row = result[i];
+      const double* thisRow = (*this)[i];
+      const double* otherRow = other[i];
+      for (size_t j = 0; j < _columns; j++) {
+        row[j] = thisRow[j] - otherRow[j];
+      }
+    }
+    return result;
+  }
+  
+  Matrix operator-(double scalar) const {
+    Matrix result(_rows, _columns);
+    for (size_t i = 0; i < _rows; i++) {
+      double* row = result[i];
+      const double* thisRow = (*this)[i];
+      for (size_t j = 0; j < _columns; j++) {
+        row[j] = thisRow[j] - scalar;
+      }
+    }
+    return result;
+  }
+
+  Matrix& operator-=(const Matrix& other) {
+    if (_rows != other._rows || _columns != other._columns) {
+      std::string what("Cannot subtract matrix with dimensions ");
+      what += std::to_string(_rows) + "x" + std::to_string(_columns);
+      what += " to matrix with dimensions ";
+      what += std::to_string(other._rows) + "x" + std::to_string(other._columns);
+      what += " in place";
+      throw std::invalid_argument(what);
+    }
+    Matrix& self = *this;
+    for (size_t i = 0; i < _rows; i++) {
+      double* row = self[i];
+      const double* otherRow = other[i];
+      for (size_t j = 0; j < _columns; j++) {
+        row[j] -= otherRow[j];
+      }
+    }
+    return self;
+  }
+
+  Matrix& operator-=(double scalar) {
+    Matrix& self = *this;
+    for (size_t i = 0; i < _rows; i++) {
+      double* row = self[i];
+      for (size_t j = 0; j < _columns; j++) {
+        row[j] -= scalar;
+      }
+    }
+    return self;
+  }
+
+  Matrix operator-() const {
+    Matrix result(_rows, _columns);
+    for (size_t i = 0; i < _rows; i++) {
+      double* row = result[i];
+      const double* thisRow = (*this)[i];
+      for (size_t j = 0; j < _columns; j++) {
+        row[j] = -thisRow[j];
+      }
+    }
+    return result;
+  }
+
+  Matrix& negateInPlace() {
+    for (size_t i = 0; i < _rows; i++) {
+      double* row = (*this)[i];
+      for (size_t j = 0; j < _columns; j++) {
+        row[j] = -row[j];
+      }
+    }
+    return *this;
   }
 
   double* operator[](size_t row) {
@@ -171,9 +386,9 @@ struct Matrix {
       for (size_t j = 0; j < _columns; j++) {
         result += std::to_string(row[j]);
         if (j + 1 == _columns) {
-          result += ", ";
-        } else {
           result += " ";
+        } else {
+          result += ", ";
         }
       }
       if (i + 1 != _rows) {
