@@ -131,6 +131,27 @@ struct MatrixSubtractionTest: Test {
   }
 };
 
+struct MatrixElementWiseProductTest: Test {
+  using Test::Test;
+  virtual void run() {
+    Matrix left(4, 4, { 1.0, 2.0, 3.0, 4.0,
+                        5.0, 6.0, 7.0, 8.0,
+                        9.0, 8.8, 7.7, 6.6,
+                        5.5, 4.4, 3.3, 2.2 });
+    Matrix right(4, 4,  { 1.0, 5.0, 9.0, 5.5,
+                          2.0, 6.0, 8.8, 4.4,
+                          3.0, 7.0, 7.7, 3.3,
+                          4.0, 8.0, 6.6, 2.2 });
+    Matrix should(4, 4, { 1.0, 10.0, 27.0, 22.0,
+                          10.0, 36.0, 61.6, 35.2,
+                          27.0, 61.6, 59.29, 21.78,
+                          22.0, 35.2, 21.78, 4.84 });
+    EnsureEqual(left.elementWiseProduct(right), should, "Correct element-wise product");
+    left.elementWiseProductInPlace(right);
+    EnsureEqual(left, should, "Correct in place element-wise product");
+  }
+};
+
 struct MatrixTestSuite: TestSuite {
   MatrixTestSuite(const char* name) : TestSuite(name) {
     addTest(new MatrixMultiplicationTest("matMult"));
@@ -138,6 +159,7 @@ struct MatrixTestSuite: TestSuite {
     addTest(new MatrixNegationTest("matNeg"));
     addTest(new MatrixAdditionTest("matAdd"));
     addTest(new MatrixSubtractionTest("matSub"));
+    addTest(new MatrixElementWiseProductTest("matEWP"));
   }
 };
 

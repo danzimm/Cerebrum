@@ -335,6 +335,45 @@ struct Matrix {
     return *this;
   }
 
+  Matrix elementWiseProduct(const Matrix& other) const {
+    if (_rows != other._rows || _columns != other._columns) {
+      std::string what("Cannot create element-wise product of matrix with dimensions ");
+      what += std::to_string(_rows) + "x" + std::to_string(_columns);
+      what += " and matrix with dimensions ";
+      what += std::to_string(other._rows) + "x" + std::to_string(other._columns);
+      throw std::invalid_argument(what);
+    }
+    Matrix result(_rows, _columns);
+    for (size_t i = 0; i < _rows; i++) {
+      double* row = result[i];
+      const double* thisRow = (*this)[i];
+      const double* otherRow = other[i];
+      for (size_t j = 0; j < _columns; j++) {
+        row[j] = thisRow[j] * otherRow[j];
+      }
+    }
+    return result;
+  }
+
+  Matrix& elementWiseProductInPlace(const Matrix& other) {
+    if (_rows != other._rows || _columns != other._columns) {
+      std::string what("Cannot create element-wise product of matrix with dimensions ");
+      what += std::to_string(_rows) + "x" + std::to_string(_columns);
+      what += " and matrix with dimensions ";
+      what += std::to_string(other._rows) + "x" + std::to_string(other._columns);
+      throw std::invalid_argument(what);
+    }
+    Matrix& self = *this;
+    for (size_t i = 0; i < _rows; i++) {
+      double* row = self[i];
+      const double* otherRow = other[i];
+      for (size_t j = 0; j < _columns; j++) {
+        row[j] *= otherRow[j];
+      }
+    }
+    return self;
+  }
+
   double* operator[](size_t row) {
     return &_data[row * _columns];
   }
