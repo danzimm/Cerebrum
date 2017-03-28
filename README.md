@@ -24,25 +24,6 @@ This just runs the tests that are in the project. Be sure include your test impl
 
 Roadmap
 ---
-- [x] IDX file reader
-- [x] IDX file reader tests
-  - [x] Read in labels files
-  - [x] Read in images files
-- [ ] Basic matrix library that has basic operations
-  - [x] Muliplication(matrix/scalar, in place/create new)
-  - [x] Transpose(in place/create new)
-  - [x] Addition(matrix/scalar, in place/create new)
-  - [x] Subtraction(matrix/scalar, in place/create new)
-  - [x] Negation(in place/create new)
-  - [ ] [Hadamard Product](https://goo.gl/eoDHmB)
-- [ ] Basic feed forward network
-  - [ ] Hidden layers of any size are allowed (all nodes are assumed to connect)
-  - [ ] Forward propogation (i.e. calculate a result from an input)
-  - [ ] Backward propogation (i.e. be able to train the network)
-  - [ ] Tests
-    - [ ] Initialize with specific weights and get specific outcome (i.e. basic addition)
-    - [ ] Train to recognize certain input (i.e. a green image)
-    - [ ] Train to recognize numbers
 - [ ] Basic CNN
   - [ ] Figure out features
   - [ ] Figure out tests
