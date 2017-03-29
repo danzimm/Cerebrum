@@ -438,7 +438,7 @@ struct Matrix {
     }
     return true;
   }
-  
+
   size_t rows() const {
     return _rows;
   }

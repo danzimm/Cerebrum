@@ -25,6 +25,18 @@
 #define EnsureEqual(a, b, msg) \
   _fixUpMsg(ensureEqual, #a " == " #b ": " msg, a, b)
 
+#define EnsureGreaterThan(a, b, msg) \
+  _fixUpMsg(ensureGreaterThan, #a " > " #b ": " msg, a, b)
+
+#define EnsureLessThan(a, b, msg) \
+  _fixUpMsg(ensureLessThan, #a " < " #b ": " msg, a, b)
+
+#define EnsureGreaterThanEqual(a, b, msg) \
+  _fixUpMsg(ensureGreaterThanEqual, #a " >= " #b ": " msg, a, b)
+
+#define EnsureLessThanEqual(a, b, msg) \
+  _fixUpMsg(ensureLessThanEqual, #a " <= " #b ": " msg, a, b)
+
 #define Ensure(val, msg) \
   _fixUpMsg(ensure, msg, val)
 
@@ -53,6 +65,38 @@ struct Test {
   void ensureEqual(const T& left, const U& right, std::string message) {
     if (left != right) {
       std::string info = message + " - " + std::to_string(left) + " != " + std::to_string(right);
+      _didFail(info);
+    }
+  }
+
+  template<typename T, typename U>
+  void ensureGreaterThan(const T& left, const U& right, std::string message) {
+    if (left <= right) {
+      std::string info = message + " - " + std::to_string(left) + " <= " + std::to_string(right);
+      _didFail(info);
+    }
+  }
+
+  template<typename T, typename U>
+  void ensureGreaterThanEqual(const T& left, const U& right, std::string message) {
+    if (left < right) {
+      std::string info = message + " - " + std::to_string(left) + " < " + std::to_string(right);
+      _didFail(info);
+    }
+  }
+
+  template<typename T, typename U>
+  void ensureLessThan(const T& left, const U& right, std::string message) {
+    if (left >= right) {
+      std::string info = message + " - " + std::to_string(left) + " >= " + std::to_string(right);
+      _didFail(info);
+    }
+  }
+
+  template<typename T, typename U>
+  void ensureLessThanEqual(const T& left, const U& right, std::string message) {
+    if (left > right) {
+      std::string info = message + " - " + std::to_string(left) + " > " + std::to_string(right);
       _didFail(info);
     }
   }
