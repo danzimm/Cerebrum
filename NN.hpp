@@ -13,10 +13,10 @@
 #include "Matrix.hpp"
 
 template<size_t numberOfLayers, typename Activator=Sigmoid, typename ActivatorPrime=SigmoidPrime>
-struct FFNN {
-  static_assert(numberOfLayers > 1, "A FFNN must have one layer");
+struct NN {
+  static_assert(numberOfLayers > 1, "A NN must have one layer");
  public:
-  FFNN(const std::array<size_t, numberOfLayers>& layerSizes) : _learningRate(0.1), _miniBatchSize(20) {
+  NN(const std::array<size_t, numberOfLayers>& layerSizes) : _learningRate(0.1), _miniBatchSize(32) {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(0.1, 1.1);

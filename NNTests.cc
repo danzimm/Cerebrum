@@ -2,15 +2,15 @@
  * Made by DanZimm on Tue Mar 28 16:26:27 CDT 2017
  */
 
-#include "FFNN.hpp"
+#include "NN.hpp"
 #include "Test.hpp"
 
 #include <set>
 
-struct FFNNInitTest: Test {
+struct NNDecToBinTest: Test {
   using Test::Test;
   virtual void run() {
-    FFNN<2> nn(std::array<size_t, 2>{ { 4, 10 } });
+    NN<2> nn(std::array<size_t, 2>{ { 4, 10 } });
     std::vector<std::pair<Matrix, Matrix>> trainingData;
     for (size_t i = 0; i < 1000; i++) {
       trainingData.push_back(
@@ -92,10 +92,10 @@ struct FFNNInitTest: Test {
   }
 };
 
-struct FFNNTestSuite: TestSuite {
-  FFNNTestSuite(const char* name) : TestSuite(name) {
-    addTest(new FFNNInitTest("FFNNInit"));
+struct NNTestSuite: TestSuite {
+  NNTestSuite(const char* name) : TestSuite(name) {
+    addTest(new NNDecToBinTest("NNDecToBin"));
   }
 };
 
-DeclareTest(FFNNTestSuite, FFNNTests)
+DeclareTest(NNTestSuite, NNTests)
