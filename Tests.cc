@@ -16,19 +16,7 @@ void Test::ensureEqual(const double& left, const double& right, std::string mess
   }
 }
 
-void term() {
-  void* callstack[128];
-  int frames = backtrace(callstack, sizeof(callstack)/sizeof(void*));
-  char** strs = backtrace_symbols(callstack, frames);
-  for (int i = 0; i < frames; ++i) {
-    std::cout << strs[i] << std::endl;
-  }
-  free(strs);
-  exit(1);
-}
-
 int main(int argc, const char* const argv[]) {
-  std::set_terminate(term);
   return TestSuite::defaultSuite()._run() ? 0 : 1;
 }
 

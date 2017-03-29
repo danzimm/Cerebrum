@@ -152,6 +152,29 @@ struct MatrixElementWiseProductTest: Test {
   }
 };
 
+struct TestFunctor {
+  double operator()(double value) {
+    return value * 2.0;
+  }
+};
+
+struct MatrixApplyTest: Test {
+  using Test::Test;
+  virtual void run() {
+    Matrix left(4, 4, { 1.0, 2.0, 3.0, 4.0,
+                        5.0, 6.0, 7.0, 8.0,
+                        9.0, 8.8, 7.7, 6.6,
+                        5.5, 4.4, 3.3, 2.2 });
+    Matrix should(4, 4, { 2.0, 4.0, 6.0, 8.0,
+                          10.0, 12.0, 14.0, 16.0,
+                          18.0, 17.6, 15.4, 13.2,
+                          11.0, 8.8, 6.6, 4.4 });
+    EnsureEqual(left.apply(TestFunctor()), should, "Correct functor application");
+    left.applyInPlace(TestFunctor());
+    EnsureEqual(left, should, "Correct functor application in place");
+  }
+};
+
 struct MatrixTestSuite: TestSuite {
   MatrixTestSuite(const char* name) : TestSuite(name) {
     addTest(new MatrixMultiplicationTest("matMult"));
@@ -160,6 +183,7 @@ struct MatrixTestSuite: TestSuite {
     addTest(new MatrixAdditionTest("matAdd"));
     addTest(new MatrixSubtractionTest("matSub"));
     addTest(new MatrixElementWiseProductTest("matEWP"));
+    addTest(new MatrixApplyTest("matApp"));
   }
 };
 

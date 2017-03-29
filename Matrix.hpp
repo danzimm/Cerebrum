@@ -11,9 +11,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-
 struct Matrix {
+  enum Tags {
+    random
+  };
+  Matrix() : _data(nullptr), _rows(0), _columns(0) {}
+
   Matrix(size_t rows, size_t columns, double initialValue = 0.0) : _rows(rows), _columns(columns) {
     size_t size = columns * rows;
     if (initialValue != 0.0) {
@@ -23,6 +26,15 @@ struct Matrix {
       }
     } else {
       _data = reinterpret_cast<double *>(calloc(size, sizeof(double)));
+    }
+  }
+
+  template<typename RandGen, typename Dist>
+  Matrix(size_t rows, size_t columns, RandGen gen, Dist dis) : _rows(rows), _columns(columns) {
+    size_t size = columns * rows;
+    _data = reinterpret_cast<double *>(malloc(size * sizeof(double)));
+    for (size_t i = 0; i < size; i++) {
+      _data[i] = dis(gen);
     }
   }
 
@@ -58,12 +70,12 @@ struct Matrix {
     _data = std::exchange(other._data, nullptr);
   }
   
-  Matrix& operator=(Matrix& other) {
+  Matrix& operator=(const Matrix& other) {
     size_t bytes;
 
     free(_data);
-    _rows = std::exchange(other._rows, 0);
-    _columns = std::exchange(other._columns, 0);
+    _rows = other._rows;
+    _columns = other._columns;
     bytes = _rows * _columns * sizeof(double);
     _data = reinterpret_cast<double *>(malloc(bytes));
     memcpy(_data, other._data, bytes);
@@ -82,7 +94,7 @@ struct Matrix {
     return other * scalar;
   }
 
-  Matrix operator*(Matrix& other) const {
+  Matrix operator*(const Matrix& other) const {
     if (_columns != other._rows) {
       std::string what("Cannot multiply matrix with dimensions ");
       what += std::to_string(_rows) + "x" + std::to_string(_columns);
@@ -372,6 +384,24 @@ struct Matrix {
       }
     }
     return self;
+  }
+
+  template<typename Functor>
+  Matrix apply(Functor f) const {
+    Matrix result(*this);
+    result.applyInPlace(f);
+    return result;
+  }
+
+  template<typename Functor>
+  Matrix& applyInPlace(Functor f) {
+    for (size_t i = 0; i < _rows; i++) {
+      double* row = (*this)[i];
+      for (size_t j = 0; j < _columns; j++) {
+        row[j] = f(row[j]);
+      }
+    }
+    return *this;
   }
 
   double* operator[](size_t row) {
