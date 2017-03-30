@@ -12,8 +12,8 @@
 #include <string.h>
 
 struct Matrix {
-  enum Tags {
-    random
+  enum GarbageTag {
+    garbage
   };
   Matrix() : _data(nullptr), _rows(0), _columns(0) {}
 
@@ -27,6 +27,11 @@ struct Matrix {
     } else {
       _data = reinterpret_cast<double *>(calloc(size, sizeof(double)));
     }
+  }
+
+  Matrix(size_t rows, size_t columns, GarbageTag) : _rows(rows), _columns(columns) {
+    size_t size = columns * rows;
+    _data = reinterpret_cast<double *>(malloc(size * sizeof(double)));
   }
 
   template<typename RandGen, typename Dist>
@@ -104,7 +109,7 @@ struct Matrix {
     }
     size_t columns = other._columns;
     size_t rows = _rows;
-    Matrix result(rows, columns);
+    Matrix result(rows, columns, garbage);
     for (size_t i = 0; i < rows; i++) {
       double* resultRow = result[i];
       const double* selfRow = (*this)[i];
@@ -120,7 +125,7 @@ struct Matrix {
   }
 
   Matrix operator*(double scalar) const {
-    Matrix result(_rows, _columns);
+    Matrix result(_rows, _columns, garbage);
     for (size_t i = 0; i < _rows; i++) {
       const double* row = (*this)[i];
       double* resultRow = result[i];
@@ -166,7 +171,7 @@ struct Matrix {
   }
 
   Matrix transpose() const {
-    Matrix result(_columns, _rows);
+    Matrix result(_columns, _rows, garbage);
     for (size_t i = 0; i < _rows; i++) {
       const double* row = (*this)[i];
       for (size_t j = 0; j < _columns; j++) {
@@ -203,7 +208,7 @@ struct Matrix {
       what += std::to_string(other._rows) + "x" + std::to_string(other._columns);
       throw std::invalid_argument(what);
     }
-    Matrix result(_rows, _columns);
+    Matrix result(_rows, _columns, garbage);
     for (size_t i = 0; i < _rows; i++) {
       double* row = result[i];
       const double* thisRow = (*this)[i];
@@ -216,7 +221,7 @@ struct Matrix {
   }
   
   Matrix operator+(double scalar) const {
-    Matrix result(_rows, _columns);
+    Matrix result(_rows, _columns, garbage);
     for (size_t i = 0; i < _rows; i++) {
       double* row = result[i];
       const double* thisRow = (*this)[i];
@@ -270,7 +275,7 @@ struct Matrix {
       what += std::to_string(other._rows) + "x" + std::to_string(other._columns);
       throw std::invalid_argument(what);
     }
-    Matrix result(_rows, _columns);
+    Matrix result(_rows, _columns, garbage);
     for (size_t i = 0; i < _rows; i++) {
       double* row = result[i];
       const double* thisRow = (*this)[i];
@@ -283,7 +288,7 @@ struct Matrix {
   }
   
   Matrix operator-(double scalar) const {
-    Matrix result(_rows, _columns);
+    Matrix result(_rows, _columns, garbage);
     for (size_t i = 0; i < _rows; i++) {
       double* row = result[i];
       const double* thisRow = (*this)[i];
@@ -326,7 +331,7 @@ struct Matrix {
   }
 
   Matrix operator-() const {
-    Matrix result(_rows, _columns);
+    Matrix result(_rows, _columns, garbage);
     for (size_t i = 0; i < _rows; i++) {
       double* row = result[i];
       const double* thisRow = (*this)[i];
@@ -355,7 +360,7 @@ struct Matrix {
       what += std::to_string(other._rows) + "x" + std::to_string(other._columns);
       throw std::invalid_argument(what);
     }
-    Matrix result(_rows, _columns);
+    Matrix result(_rows, _columns, garbage);
     for (size_t i = 0; i < _rows; i++) {
       double* row = result[i];
       const double* thisRow = (*this)[i];
@@ -439,11 +444,11 @@ struct Matrix {
     return true;
   }
 
-  size_t rows() const {
+  inline size_t rows() const {
     return _rows;
   }
   
-  size_t columns() const {
+  inline size_t columns() const {
     return _columns;
   }
   

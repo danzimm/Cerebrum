@@ -12,13 +12,6 @@ struct NNTest: Test {
   using Test::Test;
   void ensureActivations(const Matrix& m, const std::set<size_t>& activations, double bound=0.95) {
     auto end = activations.end();
-#if 0
-    std::cout << "Ensuring activations: " << m.description() << " - ";
-    for (size_t index : activations) {
-      std::cout << index << ", ";
-    }
-    std::cout << std::endl;
-#endif
     for (size_t i = 0; i < m.rows(); i++) {
       if (activations.find(i) != end) {
         EnsureGreaterThan(m[i][0], bound, "Proper activation");
@@ -26,6 +19,24 @@ struct NNTest: Test {
         EnsureLessThan(m[i][0], 1-bound, "Proper lack of activation");
       }
     }
+  }
+
+  void ensureMaxActivation(const Matrix& m, size_t index) {
+    size_t maxIndex = maxActivation(m).first;
+    EnsureEqual(maxIndex, index, "Max index occurs where expected");
+  }
+
+  std::pair<size_t, double> maxActivation(const Matrix& m) {
+    size_t maxIndex = (size_t)-1;
+    double max = 0.0;
+    for (size_t i = 0; i < m.rows(); i++) {
+      double tmp = m[i][0];
+      if (tmp > max) {
+        max = tmp;
+        maxIndex = i;
+      }
+    }
+    return { maxIndex, max };
   }
 };
 
@@ -86,11 +97,10 @@ struct NNBinToDecTest: NNTest {
             Matrix(10, 1, { 0.0, 0.0, 0.0, 0.0, 0.0, 
                             0.0, 0.0, 0.0, 0.0, 1.0 })));
     }
-    nn.setLearningRate(0.1);
+    nn.setLearningRate(10.0);
     nn.setMiniBatchSize(10);
-    for (size_t i = 0; i < 110; i++) {
-      nn(trainingData);
-    }
+    nn(trainingData);
+    nn(trainingData);
     ensureActivations(nn(Matrix(4, 1, { 0.0, 0.0, 0.0, 0.0 })), { 0 });
     ensureActivations(nn(Matrix(4, 1, { 0.0, 0.0, 0.0, 1.0 })), { 1 });
     ensureActivations(nn(Matrix(4, 1, { 0.0, 0.0, 1.0, 0.0 })), { 2 });
@@ -161,11 +171,10 @@ struct NNDecToBinTest: NNTest {
                             0.0, 0.0, 0.0, 0.0, 1.0 }),
             Matrix(4, 1, { 1.0, 0.0, 0.0, 1.0 })));
     }
-    nn.setLearningRate(0.1);
+    nn.setLearningRate(3.0);
     nn.setMiniBatchSize(10);
-    for (size_t i = 0; i < 200; i++) {
-      nn(trainingData);
-    }
+    nn(trainingData);
+    nn(trainingData);
     ensureActivations(nn(Matrix(10, 1,  { 1.0, 0.0, 0.0, 0.0, 0.0, 
                                           0.0, 0.0, 0.0, 0.0, 0.0 })), { });
     ensureActivations(nn(Matrix(10, 1,  { 0.0, 1.0, 0.0, 0.0, 0.0, 
@@ -191,8 +200,11 @@ struct NNDecToBinTest: NNTest {
 
 struct NNDigitRecTest: NNTest {
   using NNTest::NNTest;
-  virtual void run() {
+  virtual void run() {}
+  virtual void run(size_t indents) {
     NN<3> nn(std::array<size_t, 3>{ { 784, 100, 10 } });
+    nn.setLearningRate(3.0);
+    nn.setMiniBatchSize(10);
 
     Optional<IDXFile<uint8_t, 1>> optLabels = 
         IDXFile<uint8_t, 1>::fromFile("train-labels-idx1-ubyte.idx");
@@ -228,7 +240,7 @@ struct NNDigitRecTest: NNTest {
 
     std::vector<std::pair<Matrix, Matrix>> trainingData;
     for (int i = 0; i < numberTrainImgs; i++) {
-      Matrix input(trainHeight * trainWidth, 1);
+      Matrix input(trainHeight * trainWidth, 1, Matrix::garbage);
       for (int j = 0; j < trainHeight; j++) {
         for (int k = 0; k < trainWidth; k++) {
           input[j * trainWidth + k][0] = (double)imgs[{{i, j, k}}] / 255.0;
@@ -238,12 +250,37 @@ struct NNDigitRecTest: NNTest {
       output[labels[{{ i }}]][0] = 1.0;
       trainingData.push_back({ std::move(input), std::move(output) });
     }
-    nn.setMiniBatchSize(10);
-    std::cout << "Training..." << std::endl;
+    std::string prefix;
+    for (size_t i = 0; i < indents; i++) {
+      prefix += "  ";
+    }
+    std::cout << prefix << "Training..." << std::endl;
     for (size_t i = 0; i < 30; i++) {
       nn(trainingData);
-      std::cout << "Epoch " << i << std::endl;
+      std::cout << prefix << "  Epoch " << i << std::endl;
     }
+    int numberCorrect = 0;
+    for (int i = 0; i < numberTstImgs; i++) {
+      Matrix input(trainHeight * trainWidth, 1, Matrix::garbage);
+      for (int j = 0; j < trainHeight; j++) {
+        for (int k = 0; k < trainWidth; k++) {
+          input[j * trainWidth + k][0] = (double)imgs[{{i, j, k}}] / 255.0;
+        }
+      }
+      Matrix output(nn(input));
+      auto result = maxActivation(output);
+      std::cout << prefix << i << ") ";
+      if ((uint8_t)result.first == tstLabels[{{ i }}]) {
+        numberCorrect += 1;
+        std::cout << "correct = " << result.second;
+      } else {
+        std::cout << "incorrect: " << result.first << " = " << result.second;
+      }
+      std::cout << std::endl;
+    }
+    std::cout << prefix << "total: " << numberCorrect << " correct" << std::endl;
+    int ninetyFivePercent = (numberTstImgs * 95) / 100;
+    EnsureGreaterThan(numberCorrect, ninetyFivePercent, "At least 95% imgs passed");
   }
 };
 
