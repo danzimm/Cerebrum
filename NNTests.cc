@@ -232,8 +232,6 @@ struct NNDigitRecTest: NNTest {
     Ensure(optTstImgs.value, "Load testImages");
     const IDXFile<uint8_t, 3>& tstImgs = *optTstImgs.value;
     int numberTstImgs = tstImgs.dimensionSize(0);
-    //int tstHeight = tstImgs.dimensionSize(1);
-    //int tstWidth = tstImgs.dimensionSize(2);
     EnsureEqual(numberTstImgs,
                 tstLabels.dimensionSize(0),
                 "Training labels contains same count as training images");
@@ -264,7 +262,7 @@ struct NNDigitRecTest: NNTest {
       Matrix input(trainHeight * trainWidth, 1, Matrix::garbage);
       for (int j = 0; j < trainHeight; j++) {
         for (int k = 0; k < trainWidth; k++) {
-          input[j * trainWidth + k][0] = (double)imgs[{{i, j, k}}] / 255.0;
+          input[j * trainWidth + k][0] = (double)tstImgs[{{i, j, k}}] / 255.0;
         }
       }
       Matrix output(nn(input));
