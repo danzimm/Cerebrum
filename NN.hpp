@@ -17,7 +17,7 @@ template<size_t numberOfLayers, typename Activator=Sigmoid, typename ActivatorPr
 struct NN {
   static_assert(numberOfLayers > 1, "A NN must have one layer");
  public:
-  NN(const std::array<size_t, numberOfLayers>& layerSizes) : _learningRate(0.001), _miniBatchSize(32) {
+  NN(const std::array<size_t, numberOfLayers>& layerSizes) : _learningRate(0.001), _miniBatchSize(32), _verbosity(0) {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(0.1, 1.1);

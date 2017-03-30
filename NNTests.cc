@@ -239,7 +239,6 @@ struct NNDigitRecTest: NNTest {
       trainingData.push_back({ std::move(input), std::move(output) });
     }
     nn.setMiniBatchSize(10);
-    nn.setVerbosity(1);
     std::cout << "Training..." << std::endl;
     for (size_t i = 0; i < 30; i++) {
       nn(trainingData);

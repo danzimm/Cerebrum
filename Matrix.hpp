@@ -404,11 +404,11 @@ struct Matrix {
     return *this;
   }
 
-  double* operator[](size_t row) {
+  inline double* operator[](size_t row) {
     return &_data[row * _columns];
   }
 
-  const double* operator[](size_t row) const {
+  inline const double* operator[](size_t row) const {
     return &_data[row * _columns];
   }
 
