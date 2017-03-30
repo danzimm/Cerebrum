@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <array>
+#include <iostream>
 #include <iterator>
 #include <random>
 #include <vector>
@@ -16,7 +17,7 @@ template<size_t numberOfLayers, typename Activator=Sigmoid, typename ActivatorPr
 struct NN {
   static_assert(numberOfLayers > 1, "A NN must have one layer");
  public:
-  NN(const std::array<size_t, numberOfLayers>& layerSizes) : _learningRate(0.1), _miniBatchSize(32) {
+  NN(const std::array<size_t, numberOfLayers>& layerSizes) : _learningRate(0.001), _miniBatchSize(32) {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(0.1, 1.1);
@@ -49,9 +50,19 @@ struct NN {
     std::random_device rd;
     std::mt19937 g(rd());
     std::shuffle(data.begin(), data.end(), g);
-    for (auto iter = data.begin(); iter < data.end(); iter += _miniBatchSize) {
+    size_t i = 0;
+    size_t total = 1 + (size - 1) / _miniBatchSize;
+    auto end = data.end();
+    for (auto iter = data.begin(); iter < end; iter += _miniBatchSize) {
       auto last = iter + _miniBatchSize;
+      if (last > end) {
+        last = end;
+      }
       _trainWithBatch(iter, last);
+      if (_verbosity > 0) {
+        std::cout << "  Finished mini-batch " << i << " / " << total << std::endl;
+      }
+      i += 1;
     }
   }
 
@@ -69,6 +80,14 @@ struct NN {
 
   size_t miniMatchSize() const {
     return _miniBatchSize;
+  }
+
+  void setVerbosity(unsigned verb) {
+    _verbosity = verb;
+  }
+
+  unsigned verbosity() const {
+    return _verbosity;
   }
  private:
 
@@ -127,5 +146,6 @@ struct NN {
   std::array<Matrix, numberOfLayers - 1> _biases;
   double _learningRate;
   size_t _miniBatchSize;
+  unsigned _verbosity;
 };
 

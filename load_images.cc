@@ -43,9 +43,7 @@ int main(int argc, const char *argv[]) {
   int width = images.dimensionSize(2);
   int picsPerRow = w.ws_col == 0 ? 1 : w.ws_col / width;
   std::cout << "Found " << numberImages << " images with dimensions: " << width << " x " << height << std::endl;
-  int ii = 0;
   for (int i = 0; i < numberImages; i += picsPerRow) {
-    ii = i;
     for (int j = 0; j < height; j++) {
       for (int p = 0; p < picsPerRow; p++) {
         if (i + p >= numberImages) {

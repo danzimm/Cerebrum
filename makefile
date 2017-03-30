@@ -3,7 +3,7 @@
 #
 CXX=clang++
 CC=clang
-CFLAGS=-Wall -Werror -g
+CFLAGS=-Wall -Werror -O3
 CXXFLAGS=-std=c++14 -stdlib=libc++
 OBJDIR=objects
 load_labels_OBJ=$(addprefix $(OBJDIR)/, load_labels.o)
