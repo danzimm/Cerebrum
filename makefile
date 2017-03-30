@@ -5,6 +5,7 @@ CXX=clang++
 CC=clang
 CFLAGS=-Wall -Werror -O3
 CXXFLAGS=-std=c++14 -stdlib=libc++
+LDFLAGS=-lpthread
 OBJDIR=objects
 load_labels_OBJ=$(addprefix $(OBJDIR)/, load_labels.o)
 load_images_OBJ=$(addprefix $(OBJDIR)/, load_images.o)
@@ -27,13 +28,13 @@ $(OBJDIR)/%.o: %.c
 	$(CC) -MM -MT $@ $< $(CFLAGS) > $(OBJDIR)/$*.d
 
 load_labels: $(load_labels_OBJ)
-	$(CXX) $(filter %.o,$^) -o $@ $(CFLAGS) $(CXXFLAGS)
+	$(CXX) $(filter %.o,$^) -o $@ $(CFLAGS) $(CXXFLAGS) $(LDFLAGS)
 
 load_images: $(load_images_OBJ)
-	$(CXX) $(filter %.o,$^) -o $@ $(CFLAGS) $(CXXFLAGS)
+	$(CXX) $(filter %.o,$^) -o $@ $(CFLAGS) $(CXXFLAGS) $(LDFLAGS)
 
 tests: $(OBJDIR) $(tests_OBJ)
-	$(CXX) $(filter %.o,$^) -o $@ $(CFLAGS) $(CXXFLAGS)
+	$(CXX) $(filter %.o,$^) -o $@ $(CFLAGS) $(CXXFLAGS) $(LDFLAGS)
 
 test: tests
 	./tests
