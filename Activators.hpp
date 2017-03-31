@@ -22,11 +22,12 @@ struct Sigmoid {
 };
 
 struct SigmoidPrime {
-  inline double operator()(const Matrix& other, size_t k, size_t j) {
-    return k == j ? SigmoidPrime::operation(other[k][0]) : 0.0;
-  }
-  static inline double operation(double value) {
-    return Sigmoid::operation(value) * ( 1.0 - Sigmoid::operation(value) );
+  inline double operator()(const Matrix& other, const Matrix& sigma, size_t k, size_t j) {
+    if (k != j) {
+      return 0.0;
+    }
+    double sig = sigma[k][0];
+    return sig * (1.0 - sig);
   }
 };
 
@@ -44,9 +45,8 @@ struct SoftMax {
 };
 
 struct SoftMaxPrime {
-  inline double operator()(const Matrix& other, size_t k, size_t j) {
-    Matrix tmp = SoftMax()(other);
-    return tmp[k][0] * ( ( j == k ? 1.0 : 0.0 ) - tmp[j][0] );
+  inline double operator()(const Matrix& other, const Matrix& softMax, size_t k, size_t j) {
+    return softMax[k][0] * ( (j == k ? 1.0 : 0.0) - softMax[j][0] );
   }
 };
 

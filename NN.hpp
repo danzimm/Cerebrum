@@ -191,10 +191,11 @@ struct NN {
     const auto& lastZ = z.back();
     Matrix delta(current.rows(), current.columns(), Matrix::garbage);
     const size_t lastHeight = lastZ.rows();
+    const auto& lastActivation = a.back();
     for (size_t j = 0; j < lastHeight; j++) {
       double sum = 0;
       for (size_t k = 0; k < lastHeight; k++) {
-        sum += current[k][0] * actPrime(lastZ, k, j);
+        sum += current[k][0] * actPrime(lastZ, lastActivation, k, j);
       }
       delta[j][0] = sum;
     }
@@ -207,6 +208,7 @@ struct NN {
       // actual layer we're on
       size_t layer = l - 1;
       const auto& currentZ = z[layer];
+      const auto& currentActivation = a[l];
       const size_t height = currentZ.rows();
 
       current = weights[l].transpose() * delta;
@@ -214,7 +216,7 @@ struct NN {
       for (size_t j = 0; j < height; j++) {
         double sum = 0;
         for (size_t k = 0; k < height; k++) {
-          sum += current[k][0] * actPrime(currentZ, k, j);
+          sum += current[k][0] * actPrime(currentZ, currentActivation, k, j);
         }
         delta[j][0] = sum;
       }
