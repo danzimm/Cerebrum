@@ -23,7 +23,7 @@ struct NN {
   NN(const std::array<size_t, numberOfLayers>& layerSizes) : _learningRate(0.1), _miniBatchSize(32), _verbosity(0), _concurrent(false) {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dis(0.1, 1.1);
+    std::uniform_real_distribution<> dis(0.0, 1.0);
     for (size_t i = 0; i < numberOfLayers - 1; i++) {
       size_t size = layerSizes[i];
       size_t nextSize = layerSizes[i + 1];
@@ -34,12 +34,13 @@ struct NN {
 
   Matrix operator()(const Matrix& inputs) {
     Matrix result(inputs);
+    Activator act;
     for (size_t i = 0; i < numberOfLayers - 1; i++) {
       // i = `currentLayer - 1` where current layer is the
       // layer being simulated
       result = _weights[i] * result;
       result += _biases[i];
-      result.applyInPlace(Activator());
+      act(result);
     }
     return result;
   }
@@ -60,7 +61,6 @@ struct NN {
       sizes[i] = _weights[i].columns();
     }
     sizes[numberOfLayers - 1] = _weights.back().rows();
-  
     for (auto iter = data.begin(); iter < end; iter += _miniBatchSize) {
       auto last = iter + _miniBatchSize;
       if (last > end) {
@@ -116,10 +116,9 @@ struct NN {
       deltaBiases[i] = Matrix(nextSize, 1);
     }
 
-    std::mutex iterLock;
-
     unsigned workerCount = std::thread::hardware_concurrency();
     if (_concurrent && size > workerCount) {
+      std::mutex iterLock;
       std::vector<std::thread> threads;
       for (size_t i = 0; i < workerCount; i++) {
         threads.push_back(
@@ -178,15 +177,18 @@ struct NN {
     std::array<Matrix, numberOfLayers - 1> z;
     std::array<Matrix, numberOfLayers> a;
     a[0] = data.first;
+    Activator act;
+    ActivatorPrime actPrime;
     for (size_t i = 0; i < numberOfLayers - 1; i++) {
       Matrix& currentZ = z[i];
       currentZ = weights[i] * a[i];
       currentZ += biases[i];
-      a[i + 1] = currentZ.apply(Activator());
+      a[i + 1] = act(static_cast<std::add_const_t<decltype(currentZ)>>(currentZ));
     }
     Matrix current(a.back());
     current -= data.second;
-    current.elementWiseProductInPlace(z.back().apply(ActivatorPrime()));
+    const auto& lastZ = z.back();
+    current.elementWiseProductInPlace(actPrime(lastZ));
     deltaBiases.back() += current;
     deltaWeights.back() += current * a[numberOfLayers - 2].transpose();
     // we want to start at the second to last layer of weights/biases so index
@@ -196,7 +198,8 @@ struct NN {
       // actual layer we're on
       size_t layer = i - 1;
       current = weights[i].transpose() * current;
-      current.elementWiseProductInPlace(z[layer].apply(ActivatorPrime()));
+      const auto& currentZ = z[layer];
+      current.elementWiseProductInPlace(actPrime(currentZ));
       deltaBiases[layer] += current;
       deltaWeights[layer] += current * a[layer].transpose();
     }

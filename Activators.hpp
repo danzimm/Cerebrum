@@ -5,15 +5,28 @@
 
 #include <cmath>
 
+#include "Matrix.hpp"
+
 struct Sigmoid {
-  double operator()(double value) {
-    return 1.0 / (1.0 + exp(-value));
+  Matrix operator()(const Matrix& other) {
+    return other.apply(Sigmoid::operation);
+  }
+  Matrix& operator()(Matrix& other) {
+    return other.applyInPlace(Sigmoid::operation);
+  }
+  static double operation(double value) {
+    return 1.0 / ( exp(-value) + 1.0 );
   }
 };
 
 struct SigmoidPrime {
-  double operator()(double value) {
-    auto s = Sigmoid();
-    return s(value) * ( 1.0 - s(value) );
+  Matrix operator()(const Matrix& other) {
+    return other.apply(SigmoidPrime::operation);
+  }
+  Matrix& operator()(Matrix& other) {
+    return other.applyInPlace(SigmoidPrime::operation);
+  }
+  static double operation(double value) {
+    return Sigmoid::operation(value) * ( 1.0 - Sigmoid::operation(value) );
   }
 };
