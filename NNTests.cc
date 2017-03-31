@@ -43,7 +43,7 @@ struct NNTest: Test {
 struct NNBinToDecTest: NNTest {
   using NNTest::NNTest;
   virtual void run() {
-    NN<2> nn(std::array<size_t, 2>{ { 4, 10 } });
+    NN<2, SoftMax> nn(std::array<size_t, 2>{ { 4, 10 } });
     std::vector<std::pair<Matrix, Matrix>> trainingData;
     for (size_t i = 0; i < 1000; i++) {
       trainingData.push_back(
@@ -118,7 +118,7 @@ struct NNBinToDecTest: NNTest {
 struct NNDecToBinTest: NNTest {
   using NNTest::NNTest;
   virtual void run() {
-    NN<2> nn(std::array<size_t, 2>{ { 10, 4 } });
+    NN<2, SoftMax> nn(std::array<size_t, 2>{ { 10, 4 } });
     std::vector<std::pair<Matrix, Matrix>> trainingData;
     for (size_t i = 0; i < 1000; i++) {
       trainingData.push_back(

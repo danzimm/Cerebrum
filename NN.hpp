@@ -16,7 +16,7 @@
 #include "Activators.hpp"
 #include "Matrix.hpp"
 
-template<size_t numberOfLayers, typename Activator=Sigmoid, typename ActivatorPrime=SigmoidPrime>
+template<size_t numberOfLayers, typename Activator=Sigmoid, typename ActivatorPrime=typename Activator::Prime>
 struct NN {
   static_assert(numberOfLayers > 1, "A NN must have one layer");
  public:
@@ -185,23 +185,42 @@ struct NN {
       currentZ += biases[i];
       a[i + 1] = act(static_cast<std::add_const_t<decltype(currentZ)>>(currentZ));
     }
+    // TODO: make cost function a parameter
     Matrix current(a.back());
     current -= data.second;
     const auto& lastZ = z.back();
-    current.elementWiseProductInPlace(actPrime(lastZ));
+    Matrix delta(current.rows(), current.columns(), Matrix::garbage);
+    const size_t lastHeight = lastZ.rows();
+    for (size_t j = 0; j < lastHeight; j++) {
+      double sum = 0;
+      for (size_t k = 0; k < lastHeight; k++) {
+        sum += current[k][0] * actPrime(lastZ, k, j);
+      }
+      delta[j][0] = sum;
+    }
     deltaBiases.back() += current;
     deltaWeights.back() += current * a[numberOfLayers - 2].transpose();
     // we want to start at the second to last layer of weights/biases so index
     // is numberOfLayers - 2 - 1 = numberOfLayers - 3 but we need to add 1
     // because our counter is 1 above the desired index cuz unsigned.
-    for (size_t i = numberOfLayers - 2; i > 0; i--) {
+    for (size_t l = numberOfLayers - 2; l > 0; l--) {
       // actual layer we're on
-      size_t layer = i - 1;
-      current = weights[i].transpose() * current;
+      size_t layer = l - 1;
       const auto& currentZ = z[layer];
-      current.elementWiseProductInPlace(actPrime(currentZ));
-      deltaBiases[layer] += current;
-      deltaWeights[layer] += current * a[layer].transpose();
+      const size_t height = currentZ.rows();
+
+      current = weights[l].transpose() * delta;
+      delta = Matrix(current.rows(), current.columns(), Matrix::garbage);
+      for (size_t j = 0; j < height; j++) {
+        double sum = 0;
+        for (size_t k = 0; k < height; k++) {
+          sum += current[k][0] * actPrime(currentZ, k, j);
+        }
+        delta[j][0] = sum;
+      }
+
+      deltaBiases[layer] += delta;
+      deltaWeights[layer] += delta * a[layer].transpose();
     }
   }
 

@@ -7,27 +7,46 @@
 
 #include "Matrix.hpp"
 
+struct SigmoidPrime;
 struct Sigmoid {
-  Matrix operator()(const Matrix& other) {
+  using Prime = SigmoidPrime;
+  inline Matrix operator()(const Matrix& other) {
     return other.apply(Sigmoid::operation);
   }
-  Matrix& operator()(Matrix& other) {
+  inline Matrix& operator()(Matrix& other) {
     return other.applyInPlace(Sigmoid::operation);
   }
-  static double operation(double value) {
+  static inline double operation(double value) {
     return 1.0 / ( exp(-value) + 1.0 );
   }
 };
 
 struct SigmoidPrime {
-  Matrix operator()(const Matrix& other) {
-    return other.apply(SigmoidPrime::operation);
+  inline double operator()(const Matrix& other, size_t k, size_t j) {
+    return k == j ? SigmoidPrime::operation(other[k][0]) : 0.0;
   }
-  Matrix& operator()(Matrix& other) {
-    return other.applyInPlace(SigmoidPrime::operation);
-  }
-  static double operation(double value) {
+  static inline double operation(double value) {
     return Sigmoid::operation(value) * ( 1.0 - Sigmoid::operation(value) );
+  }
+};
+
+struct SoftMaxPrime;
+struct SoftMax {
+  using Prime = SoftMaxPrime;
+  inline Matrix operator()(const Matrix& other) {
+    Matrix result = other.apply(exp);
+    result *= (1.0 / result.sum());
+    return result;
+  }
+  inline Matrix& operator()(Matrix& other) {
+    return other.applyInPlace(exp) *= (1.0 / other.sum());
+  }
+};
+
+struct SoftMaxPrime {
+  inline double operator()(const Matrix& other, size_t k, size_t j) {
+    Matrix tmp = SoftMax()(other);
+    return tmp[k][0] * ( ( j == k ? 1.0 : 0.0 ) - tmp[j][0] );
   }
 };
 
