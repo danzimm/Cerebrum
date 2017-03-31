@@ -175,6 +175,18 @@ struct MatrixApplyTest: Test {
   }
 };
 
+struct MatrixSumTest: Test {
+  using Test::Test;
+  virtual void run() {
+    Matrix mat(4, 4,  { 1.0, 2.0, 3.0, 4.0,
+                        5.0, 6.0, 7.0, 8.0,
+                        9.0, 8.8, 7.7, 6.6,
+                        5.5, 4.4, 3.3, 2.2 });
+    EnsureEqual(mat.sum(), 83.5, "Correct sum");
+    EnsureEqual(Matrix().sum(), 0.0, "Correct empty sum");
+  }
+};
+
 struct MatrixTestSuite: TestSuite {
   MatrixTestSuite(const char* name) : TestSuite(name) {
     addTest(new MatrixMultiplicationTest("matMult"));
@@ -184,6 +196,7 @@ struct MatrixTestSuite: TestSuite {
     addTest(new MatrixSubtractionTest("matSub"));
     addTest(new MatrixElementWiseProductTest("matEWP"));
     addTest(new MatrixApplyTest("matApp"));
+    addTest(new MatrixSumTest("matSum"));
   }
 };
 

@@ -30,3 +30,4 @@ struct SigmoidPrime {
     return Sigmoid::operation(value) * ( 1.0 - Sigmoid::operation(value) );
   }
 };
+
