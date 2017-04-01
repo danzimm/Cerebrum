@@ -43,7 +43,7 @@ struct NNTest: Test {
 struct NNBinToDecTest: NNTest {
   using NNTest::NNTest;
   virtual void run() {
-    NN<2, SoftMax> nn(std::array<size_t, 2>{ { 4, 10 } });
+    NN<2> nn(std::array<size_t, 2>{ { 4, 10 } });
     std::vector<std::pair<Matrix, Matrix>> trainingData;
     for (size_t i = 0; i < 1000; i++) {
       trainingData.push_back(
@@ -118,7 +118,7 @@ struct NNBinToDecTest: NNTest {
 struct NNDecToBinTest: NNTest {
   using NNTest::NNTest;
   virtual void run() {
-    NN<2, SoftMax> nn(std::array<size_t, 2>{ { 10, 4 } });
+    NN<2> nn(std::array<size_t, 2>{ { 10, 4 } });
     std::vector<std::pair<Matrix, Matrix>> trainingData;
     for (size_t i = 0; i < 1000; i++) {
       trainingData.push_back(
@@ -203,7 +203,8 @@ struct NNDigitRecTest: NNTest {
   using NNTest::NNTest;
   virtual void run() {}
   virtual void run(size_t indents) {
-    NN<3> nn(std::array<size_t, 3>{ { 784, 100, 10 } });
+    NN<3> nn(std::array<size_t, 3>{ { 784, 100, 10 } },
+                      std::normal_distribution<>());
     nn.setLearningRate(3.0);
     nn.setMiniBatchSize(10);
 
@@ -263,10 +264,10 @@ struct NNDigitRecTest: NNTest {
     for (size_t i = 0; i < indents; i++) {
       prefix += "  ";
     }
-    std::cout << prefix << "Training..." << std::endl;
     size_t nepoch = 30;
     for (size_t i = 0; i < nepoch; i++) {
       nn(trainingData);
+#if 0
       std::cout << prefix << "  Epoch " << i << ": ";
       if (i == nepoch - 1) {
         continue;
@@ -275,38 +276,23 @@ struct NNDigitRecTest: NNTest {
       for (int i = 0; i < numberTstImgs; i++) {
         Matrix m = nn(tstData[i]);
         auto result = maxActivation(m);
-        uint8_t value = tstLabels[{{ i }}];
-        std::cout << "Comparing " << m.description() << " with " << (unsigned)value << ": " << result.first << "(" << result.second << ")" << std::endl;
         if ((uint8_t)result.first == tstLabels[{{ i }}]) {
           numberCorrect += 1;
         }
       }
       std::cout << numberCorrect << " / " << numberTstImgs << std::endl;
+#endif
     }
-#if 0
     int numberCorrect = 0;
     for (int i = 0; i < numberTstImgs; i++) {
-      Matrix input(trainHeight * trainWidth, 1, Matrix::garbage);
-      for (int j = 0; j < trainHeight; j++) {
-        for (int k = 0; k < trainWidth; k++) {
-          input[j * trainWidth + k][0] = (double)tstImgs[{{i, j, k}}] / 255.0;
-        }
-      }
-      Matrix output(nn(input));
+      Matrix output(nn(tstData[i]));
       auto result = maxActivation(output);
-      std::cout << prefix << i << ") ";
       if ((uint8_t)result.first == tstLabels[{{ i }}]) {
         numberCorrect += 1;
-        std::cout << "correct = " << result.second;
-      } else {
-        std::cout << "incorrect: " << result.first << " = " << result.second;
       }
-      std::cout << std::endl;
     }
-    std::cout << prefix << "total: " << numberCorrect << " correct" << std::endl;
     int ninetyFivePercent = (numberTstImgs * 95) / 100;
     EnsureGreaterThan(numberCorrect, ninetyFivePercent, "At least 95% imgs passed");
-#endif
   }
 };
 
@@ -314,7 +300,7 @@ struct NNTestSuite: TestSuite {
   NNTestSuite(const char* name) : TestSuite(name) {
     addTest(new NNDecToBinTest("NNDecToBin"));
     addTest(new NNBinToDecTest("NNBinToDec"));
-    //addTest(new NNDigitRecTest("NNDigitRec"));
+    addTest(new NNDigitRecTest("NNDigitRec"));
   }
 };
 
