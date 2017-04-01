@@ -10,4 +10,4 @@ addons:
 
 install: ./download.sh
 
-script: make && travis_wait make test
+script: make && make test

@@ -265,14 +265,11 @@ struct NNDigitRecTest: NNTest {
       prefix += "  ";
     }
     size_t nepoch = 30;
+    int numberCorrect = 0;
     for (size_t i = 0; i < nepoch; i++) {
       nn(trainingData);
-#if 0
       std::cout << prefix << "  Epoch " << i << ": ";
-      if (i == nepoch - 1) {
-        continue;
-      }
-      int numberCorrect = 0;
+      numberCorrect = 0;
       for (int i = 0; i < numberTstImgs; i++) {
         Matrix m = nn(tstData[i]);
         auto result = maxActivation(m);
@@ -281,15 +278,6 @@ struct NNDigitRecTest: NNTest {
         }
       }
       std::cout << numberCorrect << " / " << numberTstImgs << std::endl;
-#endif
-    }
-    int numberCorrect = 0;
-    for (int i = 0; i < numberTstImgs; i++) {
-      Matrix output(nn(tstData[i]));
-      auto result = maxActivation(output);
-      if ((uint8_t)result.first == tstLabels[{{ i }}]) {
-        numberCorrect += 1;
-      }
     }
     int ninetyFivePercent = (numberTstImgs * 95) / 100;
     EnsureGreaterThan(numberCorrect, ninetyFivePercent, "At least 95% imgs passed");
