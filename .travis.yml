@@ -8,4 +8,6 @@ addons:
     packages:
       - libc++-dev
 
+install: ./download.sh
+
 script: make && make test
