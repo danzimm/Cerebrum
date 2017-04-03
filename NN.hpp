@@ -200,8 +200,8 @@ struct NN {
       }
       delta[j][0] = sum;
     }
-    deltaBiases.back() += current;
-    deltaWeights.back() += current * a[numberOfLayers - 2].transpose();
+    deltaBiases.back() += delta;
+    deltaWeights.back() += delta * a[numberOfLayers - 2].transpose();
     // we want to start at the second to last layer of weights/biases so index
     // is numberOfLayers - 2 - 1 = numberOfLayers - 3 but we need to add 1
     // because our counter is 1 above the desired index cuz unsigned.

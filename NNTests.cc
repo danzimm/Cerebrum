@@ -97,11 +97,10 @@ struct NNBinToDecTest: NNTest {
             Matrix(10, 1, { 0.0, 0.0, 0.0, 0.0, 0.0, 
                             0.0, 0.0, 0.0, 0.0, 1.0 })));
     }
-    nn.setLearningRate(3.0);
+    nn.setLearningRate(20.0);
     nn.setMiniBatchSize(10);
-    for (int i = 0; i < 6; i++) {
-      nn(trainingData);
-    }
+    nn(trainingData);
+    nn(trainingData);
     ensureActivations(nn(Matrix(4, 1, { 0.0, 0.0, 0.0, 0.0 })), { 0 });
     ensureActivations(nn(Matrix(4, 1, { 0.0, 0.0, 0.0, 1.0 })), { 1 });
     ensureActivations(nn(Matrix(4, 1, { 0.0, 0.0, 1.0, 0.0 })), { 2 });
