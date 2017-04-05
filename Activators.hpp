@@ -35,12 +35,16 @@ struct SoftMaxPrime;
 struct SoftMax {
   using Prime = SoftMaxPrime;
   inline Matrix operator()(const Matrix& other) {
-    Matrix result = other.apply(exp);
+    Matrix result = other - other.max();
+    result.applyInPlace(exp);
     result *= (1.0 / result.sum());
     return result;
   }
   inline Matrix& operator()(Matrix& other) {
-    return other.applyInPlace(exp) *= (1.0 / other.sum());
+    other -= other.max();
+    other.applyInPlace(exp);
+    other *= (1.0 / other.sum());
+    return other;
   }
 };
 

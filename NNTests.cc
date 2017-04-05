@@ -8,16 +8,55 @@
 
 #include <set>
 
+using ActivationSet = const std::set<size_t>;
+
+template<typename Activator, typename Cost>
+struct Bounds {
+  static inline std::pair<double, double> bounds(size_t index,
+                                                 size_t totalOut,
+                                                 ActivationSet& activations) {
+    return activations.find(index) != activations.end() 
+          ? std::pair<double, double>{ 1.0, 0.95 } 
+          : std::pair<double, double>{ 0.05, 0.0 };
+  }
+};
+
+template<typename Cost>
+struct Bounds<SoftMax, Cost> {
+  static inline std::pair<double, double> bounds(size_t index,
+                                                 size_t totalOut,
+                                                 ActivationSet& activations) {
+    size_t numberAct = activations.size();
+    if (numberAct == 0) {
+      return std::pair<double, double>{ 0.40, 0.0 };
+    }
+    if (activations.find(index) != activations.end()) {
+      double upper = 1.0 / (double)numberAct - 0.1;
+      return std::pair<double, double>{ 1.1, upper };
+    } else {
+      return std::pair<double, double>{ 0.05, 0.0 };
+    }
+  }
+};
+
 struct NNTest: Test {
   using Test::Test;
-  void ensureActivations(const Matrix& m, const std::set<size_t>& activations, double bound=0.95) {
-    auto end = activations.end();
-    for (size_t i = 0; i < m.rows(); i++) {
-      if (activations.find(i) != end) {
-        EnsureGreaterThan(m[i][0], bound, "Proper activation");
-      } else {
-        EnsureLessThan(m[i][0], 1-bound, "Proper lack of activation");
-      }
+  template<typename Activator, typename Cost>
+  void ensureActivations(const Matrix& m, ActivationSet& activations) {
+    size_t height = m.rows();
+#if 0
+    std::cout << "Ensuring ";
+    for (auto& act : activations) {
+      std::cout << act << " ";
+    }
+    std::cout << m.description() << std::endl;
+#endif
+    for (size_t i = 0; i < height; i++) {
+      double value = m[i][0];
+      Ensure(isfinite(value), "Finite");
+      auto bounds = Bounds<Activator, Cost>::bounds(i, height, activations);
+      EnsureGreaterThanEqual(value, bounds.second, "Activation when expected");
+      EnsureLessThanEqual(value, bounds.first, "No activation when expected");
     }
   }
 
@@ -40,84 +79,11 @@ struct NNTest: Test {
   }
 };
 
-struct NNBinToDecTest: NNTest {
-  using NNTest::NNTest;
-  virtual void run() {
-    NN<2> nn(std::array<size_t, 2>{ { 4, 10 } });
-    std::vector<std::pair<Matrix, Matrix>> trainingData;
-    for (size_t i = 0; i < 1000; i++) {
-      trainingData.push_back(
-          std::pair<Matrix, Matrix>(
-            Matrix(4, 1, { 0.0, 0.0, 0.0, 0.0 }),
-            Matrix(10, 1, { 1.0, 0.0, 0.0, 0.0, 0.0, 
-                            0.0, 0.0, 0.0, 0.0, 0.0 })));
-      trainingData.push_back(
-          std::pair<Matrix, Matrix>(
-            Matrix(4, 1, { 0.0, 0.0, 0.0, 1.0 }),
-            Matrix(10, 1, { 0.0, 1.0, 0.0, 0.0, 0.0, 
-                            0.0, 0.0, 0.0, 0.0, 0.0 })));
-      trainingData.push_back(
-          std::pair<Matrix, Matrix>(
-            Matrix(4, 1, { 0.0, 0.0, 1.0, 0.0 }),
-            Matrix(10, 1, { 0.0, 0.0, 1.0, 0.0, 0.0, 
-                            0.0, 0.0, 0.0, 0.0, 0.0 })));
-      trainingData.push_back(
-          std::pair<Matrix, Matrix>(
-            Matrix(4, 1, { 0.0, 0.0, 1.0, 1.0 }),
-            Matrix(10, 1, { 0.0, 0.0, 0.0, 1.0, 0.0, 
-                            0.0, 0.0, 0.0, 0.0, 0.0 })));
-      trainingData.push_back(
-          std::pair<Matrix, Matrix>(
-            Matrix(4, 1, { 0.0, 1.0, 0.0, 0.0 }),
-            Matrix(10, 1, { 0.0, 0.0, 0.0, 0.0, 1.0, 
-                            0.0, 0.0, 0.0, 0.0, 0.0 })));
-      trainingData.push_back(
-          std::pair<Matrix, Matrix>(
-            Matrix(4, 1, { 0.0, 1.0, 0.0, 1.0 }),
-            Matrix(10, 1, { 0.0, 0.0, 0.0, 0.0, 0.0, 
-                            1.0, 0.0, 0.0, 0.0, 0.0 })));
-      trainingData.push_back(
-          std::pair<Matrix, Matrix>(
-            Matrix(4, 1, { 0.0, 1.0, 1.0, 0.0 }),
-            Matrix(10, 1, { 0.0, 0.0, 0.0, 0.0, 0.0, 
-                            0.0, 1.0, 0.0, 0.0, 0.0 })));
-      trainingData.push_back(
-          std::pair<Matrix, Matrix>(
-            Matrix(4, 1, { 0.0, 1.0, 1.0, 1.0 }),
-            Matrix(10, 1, { 0.0, 0.0, 0.0, 0.0, 0.0, 
-                            0.0, 0.0, 1.0, 0.0, 0.0 })));
-      trainingData.push_back(
-          std::pair<Matrix, Matrix>(
-            Matrix(4, 1, { 1.0, 0.0, 0.0, 0.0 }),
-            Matrix(10, 1, { 0.0, 0.0, 0.0, 0.0, 0.0, 
-                            0.0, 0.0, 0.0, 1.0, 0.0 })));
-      trainingData.push_back(
-          std::pair<Matrix, Matrix>(
-            Matrix(4, 1, { 1.0, 0.0, 0.0, 1.0 }),
-            Matrix(10, 1, { 0.0, 0.0, 0.0, 0.0, 0.0, 
-                            0.0, 0.0, 0.0, 0.0, 1.0 })));
-    }
-    nn.setLearningRate(20.0);
-    nn.setMiniBatchSize(10);
-    nn(trainingData);
-    nn(trainingData);
-    ensureActivations(nn(Matrix(4, 1, { 0.0, 0.0, 0.0, 0.0 })), { 0 });
-    ensureActivations(nn(Matrix(4, 1, { 0.0, 0.0, 0.0, 1.0 })), { 1 });
-    ensureActivations(nn(Matrix(4, 1, { 0.0, 0.0, 1.0, 0.0 })), { 2 });
-    ensureActivations(nn(Matrix(4, 1, { 0.0, 0.0, 1.0, 1.0 })), { 3 });
-    ensureActivations(nn(Matrix(4, 1, { 0.0, 1.0, 0.0, 0.0 })), { 4 });
-    ensureActivations(nn(Matrix(4, 1, { 0.0, 1.0, 0.0, 1.0 })), { 5 });
-    ensureActivations(nn(Matrix(4, 1, { 0.0, 1.0, 1.0, 0.0 })), { 6 });
-    ensureActivations(nn(Matrix(4, 1, { 0.0, 1.0, 1.0, 1.0 })), { 7 });
-    ensureActivations(nn(Matrix(4, 1, { 1.0, 0.0, 0.0, 0.0 })), { 8 });
-    ensureActivations(nn(Matrix(4, 1, { 1.0, 0.0, 0.0, 1.0 })), { 9 });
-  }
-};
-
+template<typename Activator, typename Cost, size_t numberEpochs=2, size_t learningRateNum=3, size_t learningRateDenom=1, size_t miniBatchSize=10>
 struct NNDecToBinTest: NNTest {
   using NNTest::NNTest;
   virtual void run() {
-    NN<2> nn(std::array<size_t, 2>{ { 10, 4 } });
+    NN<2, Cost, Activator> nn(std::array<size_t, 2>{ { 10, 4 } });
     std::vector<std::pair<Matrix, Matrix>> trainingData;
     for (size_t i = 0; i < 1000; i++) {
       trainingData.push_back(
@@ -171,30 +137,127 @@ struct NNDecToBinTest: NNTest {
                             0.0, 0.0, 0.0, 0.0, 1.0 }),
             Matrix(4, 1, { 1.0, 0.0, 0.0, 1.0 })));
     }
-    nn.setLearningRate(3.0);
-    nn.setMiniBatchSize(10);
-    nn(trainingData);
-    nn(trainingData);
-    ensureActivations(nn(Matrix(10, 1,  { 1.0, 0.0, 0.0, 0.0, 0.0, 
-                                          0.0, 0.0, 0.0, 0.0, 0.0 })), { });
-    ensureActivations(nn(Matrix(10, 1,  { 0.0, 1.0, 0.0, 0.0, 0.0, 
-                                          0.0, 0.0, 0.0, 0.0, 0.0 })), { 3 });
-    ensureActivations(nn(Matrix(10, 1,  { 0.0, 0.0, 1.0, 0.0, 0.0, 
-                                          0.0, 0.0, 0.0, 0.0, 0.0 })), { 2 });
-    ensureActivations(nn(Matrix(10, 1,  { 0.0, 0.0, 0.0, 1.0, 0.0, 
-                                          0.0, 0.0, 0.0, 0.0, 0.0 })), { 2, 3 });
-    ensureActivations(nn(Matrix(10, 1,  { 0.0, 0.0, 0.0, 0.0, 1.0, 
-                                          0.0, 0.0, 0.0, 0.0, 0.0 })), { 1 });
-    ensureActivations(nn(Matrix(10, 1,  { 0.0, 0.0, 0.0, 0.0, 0.0, 
-                                          1.0, 0.0, 0.0, 0.0, 0.0 })), { 1, 3 });
-    ensureActivations(nn(Matrix(10, 1,  { 0.0, 0.0, 0.0, 0.0, 0.0, 
-                                          0.0, 1.0, 0.0, 0.0, 0.0 })), { 1, 2 });
-    ensureActivations(nn(Matrix(10, 1,  { 0.0, 0.0, 0.0, 0.0, 0.0, 
-                                          0.0, 0.0, 1.0, 0.0, 0.0 })), { 1, 2, 3 });
-    ensureActivations(nn(Matrix(10, 1,  { 0.0, 0.0, 0.0, 0.0, 0.0, 
-                                          0.0, 0.0, 0.0, 1.0, 0.0 })), { 0 });
-    ensureActivations(nn(Matrix(10, 1,  { 0.0, 0.0, 0.0, 0.0, 0.0, 
-                                          0.0, 0.0, 0.0, 0.0, 1.0 })), { 0, 3 });
+    nn.setLearningRate((double)learningRateNum / (double)learningRateDenom);
+    nn.setMiniBatchSize(miniBatchSize);
+    for (size_t i = 0; i < numberEpochs; i++) {
+      nn(trainingData);
+    }
+    ensureActivations<Activator, Cost>
+        (nn(Matrix(10, 1,  { 1.0, 0.0, 0.0, 0.0, 0.0, 
+                             0.0, 0.0, 0.0, 0.0, 0.0 })), { });
+    ensureActivations<Activator, Cost>
+        (nn(Matrix(10, 1,  { 0.0, 1.0, 0.0, 0.0, 0.0, 
+                             0.0, 0.0, 0.0, 0.0, 0.0 })), { 3 });
+    ensureActivations<Activator, Cost>
+        (nn(Matrix(10, 1,  { 0.0, 0.0, 1.0, 0.0, 0.0, 
+                             0.0, 0.0, 0.0, 0.0, 0.0 })), { 2 });
+    ensureActivations<Activator, Cost>
+        (nn(Matrix(10, 1,  { 0.0, 0.0, 0.0, 1.0, 0.0, 
+                             0.0, 0.0, 0.0, 0.0, 0.0 })), { 2, 3 });
+    ensureActivations<Activator, Cost>
+        (nn(Matrix(10, 1,  { 0.0, 0.0, 0.0, 0.0, 1.0, 
+                             0.0, 0.0, 0.0, 0.0, 0.0 })), { 1 });
+    ensureActivations<Activator, Cost>
+        (nn(Matrix(10, 1,  { 0.0, 0.0, 0.0, 0.0, 0.0, 
+                             1.0, 0.0, 0.0, 0.0, 0.0 })), { 1, 3 });
+    ensureActivations<Activator, Cost>
+        (nn(Matrix(10, 1,  { 0.0, 0.0, 0.0, 0.0, 0.0, 
+                             0.0, 1.0, 0.0, 0.0, 0.0 })), { 1, 2 });
+    ensureActivations<Activator, Cost>
+        (nn(Matrix(10, 1,  { 0.0, 0.0, 0.0, 0.0, 0.0, 
+                             0.0, 0.0, 1.0, 0.0, 0.0 })), { 1, 2, 3 });
+    ensureActivations<Activator, Cost>
+        (nn(Matrix(10, 1,  { 0.0, 0.0, 0.0, 0.0, 0.0, 
+                             0.0, 0.0, 0.0, 1.0, 0.0 })), { 0 });
+    ensureActivations<Activator, Cost>
+        (nn(Matrix(10, 1,  { 0.0, 0.0, 0.0, 0.0, 0.0, 
+                             0.0, 0.0, 0.0, 0.0, 1.0 })), { 0, 3 });
+  }
+};
+
+template<typename Activator, typename Cost, size_t numberEpochs=2, size_t learningRateNum=25, size_t learningRateDenom=1, size_t miniBatchSize=10>
+struct NNBinToDecTest: NNTest {
+  using NNTest::NNTest;
+  virtual void run() {
+    NN<2, Cost, Activator> nn(std::array<size_t, 2>{ { 4, 10 } });
+    std::vector<std::pair<Matrix, Matrix>> trainingData;
+    for (size_t i = 0; i < 1000; i++) {
+      trainingData.push_back(
+          std::pair<Matrix, Matrix>(
+            Matrix(4, 1, { 0.0, 0.0, 0.0, 0.0 }),
+            Matrix(10, 1, { 1.0, 0.0, 0.0, 0.0, 0.0, 
+                            0.0, 0.0, 0.0, 0.0, 0.0 })));
+      trainingData.push_back(
+          std::pair<Matrix, Matrix>(
+            Matrix(4, 1, { 0.0, 0.0, 0.0, 1.0 }),
+            Matrix(10, 1, { 0.0, 1.0, 0.0, 0.0, 0.0, 
+                            0.0, 0.0, 0.0, 0.0, 0.0 })));
+      trainingData.push_back(
+          std::pair<Matrix, Matrix>(
+            Matrix(4, 1, { 0.0, 0.0, 1.0, 0.0 }),
+            Matrix(10, 1, { 0.0, 0.0, 1.0, 0.0, 0.0, 
+                            0.0, 0.0, 0.0, 0.0, 0.0 })));
+      trainingData.push_back(
+          std::pair<Matrix, Matrix>(
+            Matrix(4, 1, { 0.0, 0.0, 1.0, 1.0 }),
+            Matrix(10, 1, { 0.0, 0.0, 0.0, 1.0, 0.0, 
+                            0.0, 0.0, 0.0, 0.0, 0.0 })));
+      trainingData.push_back(
+          std::pair<Matrix, Matrix>(
+            Matrix(4, 1, { 0.0, 1.0, 0.0, 0.0 }),
+            Matrix(10, 1, { 0.0, 0.0, 0.0, 0.0, 1.0, 
+                            0.0, 0.0, 0.0, 0.0, 0.0 })));
+      trainingData.push_back(
+          std::pair<Matrix, Matrix>(
+            Matrix(4, 1, { 0.0, 1.0, 0.0, 1.0 }),
+            Matrix(10, 1, { 0.0, 0.0, 0.0, 0.0, 0.0, 
+                            1.0, 0.0, 0.0, 0.0, 0.0 })));
+      trainingData.push_back(
+          std::pair<Matrix, Matrix>(
+            Matrix(4, 1, { 0.0, 1.0, 1.0, 0.0 }),
+            Matrix(10, 1, { 0.0, 0.0, 0.0, 0.0, 0.0, 
+                            0.0, 1.0, 0.0, 0.0, 0.0 })));
+      trainingData.push_back(
+          std::pair<Matrix, Matrix>(
+            Matrix(4, 1, { 0.0, 1.0, 1.0, 1.0 }),
+            Matrix(10, 1, { 0.0, 0.0, 0.0, 0.0, 0.0, 
+                            0.0, 0.0, 1.0, 0.0, 0.0 })));
+      trainingData.push_back(
+          std::pair<Matrix, Matrix>(
+            Matrix(4, 1, { 1.0, 0.0, 0.0, 0.0 }),
+            Matrix(10, 1, { 0.0, 0.0, 0.0, 0.0, 0.0, 
+                            0.0, 0.0, 0.0, 1.0, 0.0 })));
+      trainingData.push_back(
+          std::pair<Matrix, Matrix>(
+            Matrix(4, 1, { 1.0, 0.0, 0.0, 1.0 }),
+            Matrix(10, 1, { 0.0, 0.0, 0.0, 0.0, 0.0, 
+                            0.0, 0.0, 0.0, 0.0, 1.0 })));
+    }
+    nn.setLearningRate((double)learningRateNum / (double)learningRateDenom);
+    nn.setMiniBatchSize(miniBatchSize);
+    for (size_t i = 0; i < numberEpochs; i++) {
+      nn(trainingData);
+    }
+    ensureActivations<Activator, Cost>
+        (nn(Matrix(4, 1, { 0.0, 0.0, 0.0, 0.0 })), { 0 });
+    ensureActivations<Activator, Cost>
+        (nn(Matrix(4, 1, { 0.0, 0.0, 0.0, 1.0 })), { 1 });
+    ensureActivations<Activator, Cost>
+        (nn(Matrix(4, 1, { 0.0, 0.0, 1.0, 0.0 })), { 2 });
+    ensureActivations<Activator, Cost>
+        (nn(Matrix(4, 1, { 0.0, 0.0, 1.0, 1.0 })), { 3 });
+    ensureActivations<Activator, Cost>
+        (nn(Matrix(4, 1, { 0.0, 1.0, 0.0, 0.0 })), { 4 });
+    ensureActivations<Activator, Cost>
+        (nn(Matrix(4, 1, { 0.0, 1.0, 0.0, 1.0 })), { 5 });
+    ensureActivations<Activator, Cost>
+        (nn(Matrix(4, 1, { 0.0, 1.0, 1.0, 0.0 })), { 6 });
+    ensureActivations<Activator, Cost>
+        (nn(Matrix(4, 1, { 0.0, 1.0, 1.0, 1.0 })), { 7 });
+    ensureActivations<Activator, Cost>
+        (nn(Matrix(4, 1, { 1.0, 0.0, 0.0, 0.0 })), { 8 });
+    ensureActivations<Activator, Cost>
+        (nn(Matrix(4, 1, { 1.0, 0.0, 0.0, 1.0 })), { 9 });
   }
 };
 
@@ -285,8 +348,12 @@ struct NNDigitRecTest: NNTest {
 
 struct NNTestSuite: TestSuite {
   NNTestSuite(const char* name) : TestSuite(name) {
-    addTest(new NNDecToBinTest("NNDecToBin"));
-    addTest(new NNBinToDecTest("NNBinToDec"));
+    addTest(new NNDecToBinTest<Sigmoid, MSE>("NNDecToBin-Sigmoid-MSE"));
+    addTest(new NNBinToDecTest<Sigmoid, MSE>("NNBinToDec-Sigmoid-MSE"));
+    addTest(new NNDecToBinTest<Sigmoid, CrossEntropy>("NNDecToBin-Sigmoid-CrossEntropy"));
+    addTest(new NNBinToDecTest<Sigmoid, CrossEntropy>("NNBinToDec-Sigmoid-CrossEntropy"));
+    addTest(new NNDecToBinTest<SoftMax, MSE, 1>("NNDecToBin-SoftMax-MSE"));
+    addTest(new NNBinToDecTest<SoftMax, MSE, 1>("NNBinToDec-SoftMax-MSE"));
     addTest(new NNDigitRecTest("NNDigitRec"));
   }
 };

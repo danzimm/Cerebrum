@@ -2,6 +2,8 @@
  * Made by DanZimm on Sun Mar 26 19:06:43 CDT 2017
  */
 
+#include <limits>
+
 #include "Matrix.hpp"
 #include "Test.hpp"
 
@@ -187,6 +189,29 @@ struct MatrixSumTest: Test {
   }
 };
 
+struct MatrixNormTest: Test {
+  using Test::Test;
+  virtual void run() {
+    Matrix mat(4, 1, { 2.0, 3.0, 4.0, 5.0 });
+    EnsureEqual(mat.norm(), sqrt(54.0), "Correct norm of matrix");
+    EnsureEqual(mat.normSquared(), 54.0, "Correct norm^2 of matrix");
+  }
+};
+
+struct MatrixMaxTest: Test {
+  using Test::Test;
+  virtual void run() {
+    Matrix mat(4, 4,  { 1.0, 2.0, 3.0, 4.0,
+                        5.0, 6.0, 7.0, 8.0,
+                        9.0, 8.8, 7.7, 6.6,
+                        5.5, 4.4, 3.3, 2.2 });
+    EnsureEqual(mat.max(), 9.0, "Correct max of matrix");
+    EnsureEqual(Matrix().max(), 
+                -std::numeric_limits<double>::infinity(),
+                "Correct max of empty matrix");
+  }
+};
+
 struct MatrixTestSuite: TestSuite {
   MatrixTestSuite(const char* name) : TestSuite(name) {
     addTest(new MatrixMultiplicationTest("matMult"));
@@ -197,6 +222,7 @@ struct MatrixTestSuite: TestSuite {
     addTest(new MatrixElementWiseProductTest("matEWP"));
     addTest(new MatrixApplyTest("matApp"));
     addTest(new MatrixSumTest("matSum"));
+    addTest(new MatrixNormTest("matNorm"));
   }
 };
 

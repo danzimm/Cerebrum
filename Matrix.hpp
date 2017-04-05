@@ -5,6 +5,7 @@
 
 #include <cmath>
 #include <initializer_list>
+#include <limits>
 #include <string>
 #include <utility>
 
@@ -494,6 +495,48 @@ struct Matrix {
       }
     }
     return self;
+  }
+  // }}}
+
+  // {{{ Norm
+  double norm() const {
+    double result = 0.0;
+    for (size_t i = 0; i < _rows; i++) {
+      const double* row = (*this)[i];
+      for (size_t j = 0; j < _columns; j++) {
+        double tmp = row[j];
+        result += tmp * tmp;
+      }
+    }
+    return sqrt(result);
+  }
+
+  double normSquared() const {
+    double result = 0.0;
+    for (size_t i = 0; i < _rows; i++) {
+      const double* row = (*this)[i];
+      for (size_t j = 0; j < _columns; j++) {
+        double tmp = row[j];
+        result += tmp * tmp;
+      }
+    }
+    return result;
+  }
+  // }}}
+  
+  // {{{ Max
+  double max() const {
+    double result = -std::numeric_limits<double>::infinity();
+    for (size_t i = 0; i < _rows; i++) {
+      const double* row = (*this)[i];
+      for (size_t j = 0; j < _columns; j++) {
+        double tmp = row[j];
+        if (tmp > result) {
+          result = tmp;
+        }
+      }
+    }
+    return result;
   }
   // }}}
   // }}}
