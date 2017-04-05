@@ -21,6 +21,7 @@ struct Bounds {
   }
 };
 
+#if 0
 template<typename Cost>
 struct Bounds<SoftMax, Cost> {
   static inline std::pair<double, double> bounds(size_t index,
@@ -38,6 +39,7 @@ struct Bounds<SoftMax, Cost> {
     }
   }
 };
+#endif
 
 struct NNTest: Test {
   using Test::Test;
@@ -140,7 +142,7 @@ struct NNDecToBinTest: NNTest {
     nn.setLearningRate((double)learningRateNum / (double)learningRateDenom);
     nn.setMiniBatchSize(miniBatchSize);
     for (size_t i = 0; i < numberEpochs; i++) {
-      nn(trainingData);
+      nn.train(trainingData);
     }
     ensureActivations<Activator, Cost>
         (nn(Matrix(10, 1,  { 1.0, 0.0, 0.0, 0.0, 0.0, 
@@ -236,7 +238,7 @@ struct NNBinToDecTest: NNTest {
     nn.setLearningRate((double)learningRateNum / (double)learningRateDenom);
     nn.setMiniBatchSize(miniBatchSize);
     for (size_t i = 0; i < numberEpochs; i++) {
-      nn(trainingData);
+      nn.train(trainingData);
     }
     ensureActivations<Activator, Cost>
         (nn(Matrix(4, 1, { 0.0, 0.0, 0.0, 0.0 })), { 0 });
@@ -329,7 +331,7 @@ struct NNDigitRecTest: NNTest {
     size_t nepoch = 30;
     int numberCorrect = 0;
     for (size_t i = 0; i < nepoch; i++) {
-      nn(trainingData);
+      nn.train(trainingData);
       std::cout << prefix << "  Epoch " << i << ": ";
       numberCorrect = 0;
       for (int i = 0; i < numberTstImgs; i++) {
@@ -350,10 +352,8 @@ struct NNTestSuite: TestSuite {
   NNTestSuite(const char* name) : TestSuite(name) {
     addTest(new NNDecToBinTest<Sigmoid, MSE>("NNDecToBin-Sigmoid-MSE"));
     addTest(new NNBinToDecTest<Sigmoid, MSE>("NNBinToDec-Sigmoid-MSE"));
-    addTest(new NNDecToBinTest<Sigmoid, CrossEntropy>("NNDecToBin-Sigmoid-CrossEntropy"));
-    addTest(new NNBinToDecTest<Sigmoid, CrossEntropy>("NNBinToDec-Sigmoid-CrossEntropy"));
-    addTest(new NNDecToBinTest<SoftMax, MSE, 1>("NNDecToBin-SoftMax-MSE"));
-    addTest(new NNBinToDecTest<SoftMax, MSE, 1>("NNBinToDec-SoftMax-MSE"));
+    addTest(new NNDecToBinTest<Sigmoid, CrossEntropy, 1>("NNDecToBin-Sigmoid-CrossEntropy"));
+    addTest(new NNBinToDecTest<Sigmoid, CrossEntropy, 1>("NNBinToDec-Sigmoid-CrossEntropy"));
     addTest(new NNDigitRecTest("NNDigitRec"));
   }
 };

@@ -6,8 +6,8 @@
 struct MSEPrime;
 struct MSE {
   using Prime = MSEPrime;
-  inline double operator()(const Matrix& expected, const Matrix& actual) {
-    return 0.5 * (expected - actual).normSquared();
+  inline double operator()(const Matrix& expected, const Matrix& activation) {
+    return 0.5 * (expected - activation).normSquared();
   }
 };
 
@@ -19,13 +19,10 @@ struct MSEPrime {
                            Activator act,
                            ActivatorPrime actPrime) {
     size_t height = expected.rows();
-    Matrix delta(height, 1, Matrix::garbage);
+    Matrix delta = activation - expected;
     for (size_t j = 0; j < height; j++) {
-      double sum = 0;
-      for (size_t k = 0; k < height; k++) {
-        sum += (activation[k][0] - expected[k][0]) * actPrime(z, activation, k, j);
-      }
-      delta[j][0] = sum;
+      delta[j][0] = (activation[j][0] - expected[j][0])
+          * actPrime(z[j][0], activation[j][0]);
     }
     return delta;
   }
@@ -35,13 +32,14 @@ struct MSEPrime {
 struct CrossEntropyPrime;
 struct CrossEntropy {
   using Prime = CrossEntropyPrime;
-  inline double operator()(const Matrix& expected, const Matrix& actual) {
+  inline double operator()(const Matrix& expected, const Matrix& activation) {
     double result = 0.0;
     size_t height = expected.rows();
     for (size_t i = 0; i < height; i++) {
       double currentExpected = expected[i][0];
-      double currentActual = actual[i][0];
-      result += currentExpected * log(currentActual) + (1 - currentExpected) * log(1 - currentActual);
+      double currentActivation = activation[i][0];
+      result += currentExpected * log(currentActivation)
+            + (1 - currentExpected) * log(1 - currentActivation);
     }
     return -result;
   }
@@ -50,11 +48,11 @@ struct CrossEntropy {
 struct CrossEntropyPrime {
   template<typename Activator, typename ActivatorPrime = typename Activator::Prime>
   inline Matrix operator()(const Matrix& expected,
-                           const Matrix& actual,
+                           const Matrix& activation,
                            const Matrix& z,
                            Activator act,
                            ActivatorPrime actPrime) {
-    return actual - expected;
+    return activation - expected;
   }
 };
 
