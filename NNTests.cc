@@ -32,7 +32,7 @@ struct Bounds<SoftMax, Cost> {
     }
     if (activations.find(index) != activations.end()) {
       double upper = 1.0 / (double)numberAct - 0.1;
-      return std::pair<double, double>{ 1.1, upper };
+      return std::pair<double, double>{ 1.0, upper };
     } else {
       return std::pair<double, double>{ 0.05, 0.0 };
     }
