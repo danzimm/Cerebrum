@@ -3,6 +3,8 @@
  */
 #pragma once
 
+#include "Activators.hpp"
+
 struct MSEPrime;
 struct MSE {
   using Prime = MSEPrime;
@@ -52,7 +54,25 @@ struct CrossEntropyPrime {
                            const Matrix& z,
                            Activator act,
                            ActivatorPrime actPrime) {
-    return activation - expected;
+    size_t height = expected.rows();
+    Matrix result(height, 1, Matrix::garbage);
+    for (size_t j = 0; j < height; j++) {
+      double currentAct = activation[j][0];
+      double y = expected[j][0];
+      double currentZ = z[j][0];
+      result[j][0] = actPrime(currentZ, currentAct)
+            * (currentAct - y) / (currentAct * (1.0 - currentAct));
+    }
+    return result;
   }
 };
+
+template<>
+inline Matrix CrossEntropyPrime::operator()(const Matrix& expected,
+                                            const Matrix& activation,
+                                            const Matrix& z,
+                                            Sigmoid act,
+                                            SigmoidPrime actPrime) {
+  return activation - expected;
+}
 
